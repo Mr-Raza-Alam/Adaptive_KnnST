@@ -85,4 +85,4 @@ def real_pollutant_field(summary_csv="Measurement_summary.csv",
     return xy, t_n, val
 
 
-REPORT_DATES = ["2017-01-01", "2017-04-15", "2017-07-20", "2017-10-10", "2018-03-05"]
+REPORT_DATES = ["2017-01-01", "2017-04-15", "2017-07-20"]
