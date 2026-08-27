@@ -9,7 +9,6 @@ from scipy.spatial import cKDTree
 from dataclasses import dataclass
 import time
 
-# ---------------------------------------------------------------------------
 # Data container
 # ---------------------------------------------------------------------------
 @dataclass
