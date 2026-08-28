@@ -5,7 +5,7 @@ Implements a 3D spatiotemporal grid hash map to speed up neighbor search.
 
 import numpy as np
 from collections import defaultdict
-from Ad_knn_st import STData, spatiotemporal_dist
+from utils import STData, spatiotemporal_dist
 
 class VoxelGrid:
     def __init__(self, obs: STData, bins_xy=10, bins_t=24):

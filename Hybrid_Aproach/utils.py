@@ -29,32 +29,33 @@ def _ne(actual, pred):
     return float(np.sum(np.abs(actual - pred)) / denom)
 
 
-def load_seoul_month_dataset(summary_csv="Seoul_dataset_2017.csv", month_str="2017-01", pollutant="PM2.5"):
+def load_seoul_dataset(summary_csv="Seoul_dataset_2017.csv", pollutant="PM2.5", n_rows=None, seed=42):
     """
-    Loads REAL Seoul measurements for a single month across all stations.
-    Automatically filters missing values (-1) and normalizes coordinates.
+    Loads REAL Seoul measurements across all stations.
+    Returns xy, t, v, station_ids (all as numpy arrays).
+    Station IDs are preserved so the hybrid algorithm can do
+    station-aware temporal interpolation.
     """
     if not os.path.exists(summary_csv):
         raise FileNotFoundError(f"Could not find dataset: {summary_csv}")
         
     df = pd.read_csv(summary_csv, parse_dates=["Measurement date"])
 
-    # Filter by month
-    month_mask = df["Measurement date"].dt.strftime("%Y-%m") == month_str
-    month_df = df.loc[month_mask].copy()
-    if month_df.empty:
-        raise ValueError(f"No rows found for month={month_str} in {summary_csv}.")
-
     # Drop missing values / sensor errors marked as -1 or 0
-    month_df = month_df[month_df[pollutant] > 0]
+    clean_df = df[df[pollutant] > 0].copy()
+    
+    # Optionally sample an exact number of rows for scaling tests
+    if n_rows is not None and n_rows < len(clean_df):
+        clean_df = clean_df.sample(n=n_rows, random_state=seed).copy()
 
-    # Normalize time across the month range
-    time_series = month_df["Measurement date"]
+    # Normalize time across the selected range
+    time_series = clean_df["Measurement date"]
     t_seconds = (time_series - time_series.min()).dt.total_seconds().values
     
-    lat = month_df["Latitude"].values.astype(float)
-    lon = month_df["Longitude"].values.astype(float)
-    val = month_df[pollutant].values.astype(float)
+    lat = clean_df["Latitude"].values.astype(float)
+    lon = clean_df["Longitude"].values.astype(float)
+    val = clean_df[pollutant].values.astype(float)
+    sids = clean_df["Station code"].values.astype(int)
 
     # Normalize space to [0,1]
     lat_n = (lat - lat.min()) / (lat.max() - lat.min() + 1e-9)
@@ -64,6 +65,6 @@ def load_seoul_month_dataset(summary_csv="Seoul_dataset_2017.csv", month_str="20
     t_n = t_seconds / (t_seconds.max() + 1e-9)
 
     xy = np.stack([lon_n, lat_n], axis=1)
-    print(f"Loaded {len(val)} REAL readings for {pollutant} on {month_str} "
-          f"from {month_df['Station code'].nunique()} stations.")
-    return xy, t_n, val
+    print(f"Loaded {len(val)} REAL readings for {pollutant} "
+          f"from {clean_df['Station code'].nunique()} stations.")
+    return xy, t_n, val, sids
