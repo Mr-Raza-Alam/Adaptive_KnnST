@@ -8,7 +8,7 @@ from base_knn_st import VoxelGrid, knn_st_voxel_predict
 #  CONFIGURATION — Change these values to customize your test
 # ============================================================
 POLLUTANTS = ["PM2.5", "PM10", "NO2"]       # Add/remove pollutants here
-DATASET_SIZE = 35000                         # Change dataset size here
+DATASET_SIZE = 210000                         # Change dataset size here
 MISSING_RATES = [0.4, 0.6, 0.8, 0.9]        # Change missing rates here
 N_REPEATS = 3                                # Repeats for averaging
 # ============================================================
@@ -47,7 +47,7 @@ def run_missing_rate_test(xy, t, v, sids, missing_rate, seed=42):
         obs, miss_xy, miss_t,
         station_ids_obs=obs_sids,
         station_ids_miss=miss_sids,
-        alpha=0.5, k=5
+        alpha=0.5, k=4, total_hours=8759.0
     )
     time_hybrid = time.time() - t0
     ne_hybrid = _ne(miss_v, hybrid_pred)
