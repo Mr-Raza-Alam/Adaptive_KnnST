@@ -11,7 +11,7 @@ class STData:
 
 
 def spatiotemporal_dist(xy, t, xy_q, t_q, alpha):
-    """Exact d_ST(x,p) = alpha*dS + (1-alpha)*dT"""
+    # calculate custom distance: blend space and time
     if xy.ndim == 1:
         xy = xy.reshape(1, 2)
         t = np.array([t])
@@ -21,7 +21,7 @@ def spatiotemporal_dist(xy, t, xy_q, t_q, alpha):
 
 
 def _ne(actual, pred):
-    """Normalized Error metric for evaluating imputation."""
+    # calculate the normalized error to see how well we did
     actual, pred = np.asarray(actual), np.asarray(pred)
     denom = np.sum(np.abs(actual))
     if denom == 0:
@@ -30,12 +30,7 @@ def _ne(actual, pred):
 
 
 def load_seoul_dataset(summary_csv="Seoul_dataset_2017.csv", pollutant="PM2.5", n_rows=None, seed=42):
-    """
-    Loads REAL Seoul measurements across all stations.
-    Returns xy, t, v, station_ids (all as numpy arrays).
-    Station IDs are preserved so the hybrid algorithm can do
-    station-aware temporal interpolation.
-    """
+    # load the real dataset and format it for our tests
     if not os.path.exists(summary_csv):
         raise FileNotFoundError(f"Could not find dataset: {summary_csv}")
         
@@ -44,11 +39,11 @@ def load_seoul_dataset(summary_csv="Seoul_dataset_2017.csv", pollutant="PM2.5", 
     # Drop missing values / sensor errors marked as -1 or 0
     clean_df = df[df[pollutant] > 0].copy()
     
-    # Optionally sample an exact number of rows for scaling tests
+    # pick a random sample of rows if we only want to test a subset
     if n_rows is not None and n_rows < len(clean_df):
         clean_df = clean_df.sample(n=n_rows, random_state=seed).copy()
 
-    # Normalize time across the selected range
+    # convert dates to seconds so we can work with them as numbers
     time_series = clean_df["Measurement date"]
     t_seconds = (time_series - time_series.min()).dt.total_seconds().values
     
@@ -57,11 +52,11 @@ def load_seoul_dataset(summary_csv="Seoul_dataset_2017.csv", pollutant="PM2.5", 
     val = clean_df[pollutant].values.astype(float)
     sids = clean_df["Station code"].values.astype(int)
 
-    # Normalize space to [0,1]
+    # scale space and time down to [0,1] range so the distance math works correctly
     lat_n = (lat - lat.min()) / (lat.max() - lat.min() + 1e-9)
     lon_n = (lon - lon.min()) / (lon.max() - lon.min() + 1e-9)
     
-    # Normalize time to [0,1]
+    # normalize time as well
     t_n = t_seconds / (t_seconds.max() + 1e-9)
 
     xy = np.stack([lon_n, lat_n], axis=1)
