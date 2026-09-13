@@ -1,13 +1,12 @@
 import numpy as np
 import time
-import argparse
-from utils import load_seoul_dataset, load_temperature_dataset, STData, _ne
+from utils import load_seoul_dataset, STData, _ne
 from hybrid_knn_st import hybrid_knn_st_predict
 from cs_baseline import cs_impute
 
 # change these settings to run different tests
 POLLUTANTS = ["PM2.5", "PM10", "NO2"]       # which pollutants to test
-DATASET_SIZES = [10000, 20000, 50000, 100000] # how many rows to use
+DATASET_SIZES = [10000, 20000, 50000,100000] # how many rows to use
 MISSING_RATES = [0.4, 0.6, 0.8, 0.9]        # how much data to drop (40% to 90%)
 N_REPEATS = 3                               # run it 3 times to get an average
 
@@ -80,35 +79,20 @@ def run_missing_rate_test(xy, t, v, sids, missing_rate, seed=42):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset", type=str, default="seoul", choices=["seoul", "temperature"])
-    args = parser.parse_args()
-
-    if args.dataset == "seoul":
-        features_to_test = POLLUTANTS
-    else:
-        features_to_test = ["Temperature"]
-
     for ds_size in DATASET_SIZES:
-        for feature in features_to_test:
+        for pollutant in POLLUTANTS:
             print(f"\n{'='*60}")
-            print(f"  Dataset: {args.dataset.capitalize()} | Feature: {feature} | Size: {ds_size}")
+            print(f"  Pollutant: {pollutant}  |  Dataset Size: {ds_size}")
             print(f"{'='*60}")
 
             try:
-                if args.dataset == "seoul":
-                    xy, t, v, sids = load_seoul_dataset(
-                        summary_csv="Seoul_dataset_2017.csv",
-                        pollutant=feature,
-                        n_rows=ds_size
-                    )
-                else:
-                    xy, t, v, sids = load_temperature_dataset(
-                        csv_file="crowd_temperature.csv",
-                        n_rows=ds_size
-                    )
+                xy, t, v, sids = load_seoul_dataset(
+                    summary_csv="Seoul_dataset_2017.csv",
+                    pollutant=pollutant,
+                    n_rows=ds_size
+                )
             except Exception as e:
-                print(f"  ERROR loading {feature}: {e}")
+                print(f"  ERROR loading {pollutant}: {e}")
                 continue
 
             print(f"{'Rate':>5} | {'CS NE':>10} | {'CS t(s)':>10} | {'Hybrid NE':>10} | {'Hybrid t(s)':>11}")
