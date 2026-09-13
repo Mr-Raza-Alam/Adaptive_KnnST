@@ -63,3 +63,41 @@ def load_seoul_dataset(summary_csv="Seoul_dataset_2017.csv", pollutant="PM2.5", 
     print(f"Loaded {len(val)} REAL readings for {pollutant} "
           f"from {clean_df['Station code'].nunique()} stations.")
     return xy, t_n, val, sids
+
+
+def load_temperature_dataset(csv_file="crowd_temperature.csv", n_rows=None, seed=42):
+    # load the real temperature dataset and format it for our tests
+    if not os.path.exists(csv_file):
+        raise FileNotFoundError(f"Could not find dataset: {csv_file}")
+        
+    df = pd.read_csv(csv_file)
+    
+    # drop missing values if any
+    clean_df = df.dropna(subset=["Temperature", "Latitude", "Longitude"]).copy()
+    
+    # pick a random sample of rows if we only want to test a subset
+    if n_rows is not None and n_rows < len(clean_df):
+        clean_df = clean_df.sample(n=n_rows, random_state=seed).copy()
+
+    # parse dates and convert to seconds
+    # the time column has format like '00:01:42.3687+01' so we split by '+'
+    datetime_str = clean_df["Date"] + " " + clean_df["Time"].str.split('+').str[0]
+    time_series = pd.to_datetime(datetime_str, format="mixed")
+    
+    t_seconds = (time_series - time_series.min()).dt.total_seconds().values
+    
+    lat = clean_df["Latitude"].values.astype(float)
+    lon = clean_df["Longitude"].values.astype(float)
+    val = clean_df["Temperature"].values.astype(float)
+    sids = clean_df["Taxi ID"].values.astype(int)
+
+    # scale space and time down to [0,1] range so the distance math works correctly
+    lat_n = (lat - lat.min()) / (lat.max() - lat.min() + 1e-9)
+    lon_n = (lon - lon.min()) / (lon.max() - lon.min() + 1e-9)
+    
+    # normalize time as well
+    t_n = t_seconds / (t_seconds.max() + 1e-9)
+
+    xy = np.stack([lon_n, lat_n], axis=1)
+    
+    return xy, t_n, val, sids

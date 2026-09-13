@@ -1,6 +1,7 @@
 import numpy as np
 import time
-from utils import load_seoul_dataset, STData, _ne
+import argparse
+from utils import load_seoul_dataset, load_temperature_dataset, STData, _ne
 from hybrid_knn_st import hybrid_knn_st_predict
 from base_knn_st import VoxelGrid, knn_st_voxel_predict
 
@@ -56,20 +57,35 @@ def run_missing_rate_test(xy, t, v, sids, missing_rate, seed=42):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dataset", type=str, default="seoul", choices=["seoul", "temperature"])
+    args = parser.parse_args()
+
+    if args.dataset == "seoul":
+        features_to_test = POLLUTANTS
+    else:
+        features_to_test = ["Temperature"]
+
     for ds_size in DATASET_SIZES:
-        for pollutant in POLLUTANTS:
+        for feature in features_to_test:
             print(f"\n{'='*60}")
-            print(f"  Pollutant: {pollutant}  |  Dataset Size: {ds_size}")
+            print(f"  Dataset: {args.dataset.capitalize()} | Feature: {feature} | Size: {ds_size}")
             print(f"{'='*60}")
 
             try:
-                xy, t, v, sids = load_seoul_dataset(
-                    summary_csv="Seoul_dataset_2017.csv",
-                    pollutant=pollutant,
-                    n_rows=ds_size
-                )
+                if args.dataset == "seoul":
+                    xy, t, v, sids = load_seoul_dataset(
+                        summary_csv="Seoul_dataset_2017.csv",
+                        pollutant=feature,
+                        n_rows=ds_size
+                    )
+                else:
+                    xy, t, v, sids = load_temperature_dataset(
+                        csv_file="crowd_temperature.csv",
+                        n_rows=ds_size
+                    )
             except Exception as e:
-                print(f"  ERROR loading {pollutant}: {e}")
+                print(f"  ERROR loading {feature}: {e}")
                 continue
 
             print(f"{'Rate':>5} | {'Base NE':>10} | {'Base t(s)':>10} | {'Hybrid NE':>10} | {'Hybrid t(s)':>11}")
