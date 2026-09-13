@@ -6,7 +6,7 @@ from cs_baseline import cs_impute
 
 # change these settings to run different tests
 POLLUTANTS = ["PM2.5", "PM10", "NO2"]       # which pollutants to test
-DATASET_SIZES = [10000, 20000, 50000,100000] # how many rows to use
+DATASET_SIZES = [10000,20000,50000,100000] # how many rows to use
 MISSING_RATES = [0.4, 0.6, 0.8, 0.9]        # how much data to drop (40% to 90%)
 N_REPEATS = 3                               # run it 3 times to get an average
 
