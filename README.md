@@ -1,4 +1,4 @@
-# Station-Aware Temporal-Spatial KNN-ST (Hybrid Algorithm v3)
+# Station-Aware Temporal-Spatial KNN-ST (Hybrid Algorithm)
 
 > **Improving KNN-ST (Marchang, 2021) for Mobile Crowdsensing Missing Data Imputation**
 
